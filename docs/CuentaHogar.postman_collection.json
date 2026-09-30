@@ -1,0 +1,1654 @@
+{
+  "info": {
+    "name": "CuentaHogar API v1",
+    "description": "API JSON del back-end de CuentaHogar (TP N° 1, Programación IV, UTN FRLP).\n\n1. Levantá el server (`bin/rails server`) con los seeds cargados (`bin/rails db:seed`).\n2. Ejecutá **Autenticación → Login**: guarda el token en la variable `token`.\n3. El resto de los requests usa `Authorization: Bearer {{token}}`, heredado de la colección.\n\nLos requests de alta guardan los ids creados (`expense_id`, `income_id`, `reminder_id`, `membership_id`) para que los de ver, editar y eliminar operen sobre esos mismos registros.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "logout_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "new_user_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membership_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expense_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "income_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reminder_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticación",
+      "description": "Registro, login por token, perfil y logout. Ejecutá **Login** primero: guarda el token en la variable de colección `token`.",
+      "item": [
+        {
+          "name": "Registro (signup)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"new_user_email\", \"martina.\" + Date.now() + \"@mail.com\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Usuario registrado (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "signup"
+              ]
+            },
+            "description": "Crea un usuario final, le envía el email de bienvenida y devuelve un token.\n\nEl pre-request genera un email único en `new_user_email` para poder ejecutarlo más de una vez; ese mismo usuario se usa después en **Invitar miembro**. Este request no reemplaza el token de Lucía.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"name\": \"Martina Martínez\",\n    \"email_address\": \"{{new_user_email}}\",\n    \"password\": \"cuentahogar123\",\n    \"password_confirmation\": \"cuentahogar123\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login correcto (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test(\"La respuesta trae un token\", function () {",
+                  "  pm.expect(body.token).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.collectionVariables.set(\"token\", body.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "login"
+              ]
+            },
+            "description": "Login del usuario final con los datos de los seeds. El script de test guarda el token de la respuesta en la variable de colección `token`, que usan todos los demás requests (Bearer heredado de la colección).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email_address\": \"lucia.martinez@mail.com\",\n  \"password\": \"cuentahogar123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
+            },
+            "description": "Datos del usuario autenticado y sus hogares (con su rol en cada uno)."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "profile"
+              ]
+            },
+            "description": "Cambia el nombre. Para cambiar la contraseña enviar `password`, `password_confirmation` y la actual en `password_challenge`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"name\": \"Lucía Martínez\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.collectionVariables.get(\"base_url\") + \"/api/v1/login\",",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"Accept\": \"application/json\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ email_address: \"lucia.martinez@mail.com\", password: \"cuentahogar123\" }) }",
+                  "}, function (err, res) {",
+                  "  if (!err) { pm.collectionVariables.set(\"logout_token\", res.json().token); }",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Token revocado (204)\", function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});",
+                  "pm.sendRequest({",
+                  "  url: pm.collectionVariables.get(\"base_url\") + \"/api/v1/profile\",",
+                  "  method: \"GET\",",
+                  "  header: { \"Accept\": \"application/json\", \"Authorization\": \"Bearer \" + pm.collectionVariables.get(\"logout_token\") }",
+                  "}, function (err, res) {",
+                  "  pm.test(\"El token revocado ya no sirve (401)\", function () {",
+                  "    pm.expect(res.code).to.eql(401);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "logout"
+              ]
+            },
+            "description": "Revoca el token con el que se hace el request.\n\nPara no invalidar el token de la colección (y poder ejecutarla completa con el Runner), el pre-request hace un login aparte y guarda ese token en `logout_token`; este request revoca ese token. El test comprueba que, después del logout, ese token ya no sirve: `GET /api/v1/profile` responde 401.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{logout_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Hogares y categorías",
+      "description": "Hogares del usuario, resúmenes del mes (por hogar y personal), categorías y miembros. En los seeds, **Hogar Martínez** es el hogar `1` y Lucía es su owner.",
+      "item": [
+        {
+          "name": "Listar hogares",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/households",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "households"
+              ]
+            },
+            "description": "Hogares del usuario con sus miembros (`id` del usuario, `membership_id`, nombre, iniciales y rol)."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear hogar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Hogar creado (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/households",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "households"
+              ]
+            },
+            "description": "Crea un hogar; quien lo crea queda como `owner`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"household\": {\n    \"name\": \"Casa de la costa\",\n    \"currency\": \"ARS\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver hogar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/households/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "households",
+                "1"
+              ]
+            },
+            "description": "Detalle del Hogar Martínez (id 1 en los seeds). Un hogar del que el usuario no es miembro devuelve 404."
+          },
+          "response": []
+        },
+        {
+          "name": "Resumen del mes de un hogar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/households/1/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "households",
+                "1",
+                "summary"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-09",
+                  "description": "Mes YYYY-MM. Si no se envía, el mes actual.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Totales del mes, variación contra el mes anterior, presupuesto, disponible, pendientes de revisión y gasto por categoría."
+          },
+          "response": []
+        },
+        {
+          "name": "Resumen del mes personal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "summary"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-09",
+                  "description": "Mes YYYY-MM. Si no se envía, el mes actual.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Mismos campos que el resumen de un hogar, calculado sobre los gastos e ingresos del usuario sin hogar (`household_id: null`). No hay presupuestos personales: `budget_total` es 0."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar categorías",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories"
+              ],
+              "query": [
+                {
+                  "key": "household_id",
+                  "value": "1",
+                  "description": "Solo las globales y las de este hogar.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Categorías globales más las propias de los hogares del usuario."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear categoría del hogar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Categoría creada (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories"
+              ]
+            },
+            "description": "Crea una categoría propia de un hogar del usuario. Nunca crea categorías globales: sin `household_id` responde 400 y con un hogar ajeno, 404. Si ya existe \"Mascotas\" en el hogar (por ejemplo, al ejecutarlo dos veces) responde 422.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": {\n    \"household_id\": 1,\n    \"name\": \"Mascotas\",\n    \"color\": \"#C9A86A\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invitar miembro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Miembro agregado (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "if (body.membership_id !== undefined) { pm.collectionVariables.set(\"membership_id\", body.membership_id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/households/1/memberships",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "households",
+                "1",
+                "memberships"
+              ]
+            },
+            "description": "Solo el owner del hogar. Agrega como `member` al usuario registrado con ese email (usa el que creó **Registro**; en los seeds Sofía ya es miembro y daría 422). Email no registrado: 404. Guarda `membership_id` para **Quitar miembro**.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email_address\": \"{{new_user_email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quitar miembro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Miembro quitado (204)\", function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/households/1/memberships/{{membership_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "households",
+                "1",
+                "memberships",
+                "{{membership_id}}"
+              ]
+            },
+            "description": "Solo el owner del hogar. El `:id` es el `membership_id` que devuelven el listado de hogares y la invitación. El owner no puede quitarse a sí mismo (422)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Gastos e ingresos",
+      "description": "Gastos (con comprobante opcional) e ingresos. Los requests de alta guardan el id creado para ver, editar y eliminar ese mismo registro sin tocar los datos de los seeds.",
+      "item": [
+        {
+          "name": "Listar gastos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/expenses?pending=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "household_id",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "scope",
+                  "value": "personal",
+                  "description": "Solo gastos personales (sin hogar).",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "2026-09",
+                  "disabled": true
+                },
+                {
+                  "key": "category_id",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pending",
+                  "value": "true",
+                  "description": "Solo los pendientes de revisión (sin categoría)."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Gastos visibles para el usuario (de sus hogares y los personales propios). Filtros opcionales: activá los que necesites."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear gasto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Gasto creado (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "if (body.id !== undefined) { pm.collectionVariables.set(\"expense_id\", body.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/expenses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "expenses"
+              ]
+            },
+            "description": "Gasto del Hogar Martínez en la categoría Alimentos (id 1 en los seeds). Sin `household_id` es un gasto personal; sin `category_id` queda pendiente de revisión. Guarda `expense_id`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expense\": {\n    \"description\": \"Verdulería del barrio\",\n    \"amount\": 12500,\n    \"spent_on\": \"2026-09-15\",\n    \"household_id\": 1,\n    \"category_id\": 1,\n    \"recurring\": false,\n    \"notes\": \"Compra semanal\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver gasto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/expenses/{{expense_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "expenses",
+                "{{expense_id}}"
+              ]
+            },
+            "description": "Detalle del gasto creado (incluye `receipt_url` si tiene comprobante)."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar gasto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/expenses/{{expense_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "expenses",
+                "{{expense_id}}"
+              ]
+            },
+            "description": "Modifica campos del gasto; por ejemplo, asignar la categoría a un gasto importado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expense\": {\n    \"amount\": 13200,\n    \"notes\": \"Incluye frutas\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear gasto con comprobante (multipart)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Gasto con comprobante creado (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/expenses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "expenses"
+              ]
+            },
+            "description": "Mismo endpoint que **Crear gasto**, enviado como `multipart/form-data` para adjuntar el comprobante (Active Storage). En `expense[receipt]` elegí un JPG, PNG o PDF de hasta 5 MB (por ejemplo `test/fixtures/files/comprobante.png` del repo). La respuesta trae `receipt_url`.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "expense[description]",
+                  "value": "Farmacia — medicamentos",
+                  "type": "text"
+                },
+                {
+                  "key": "expense[amount]",
+                  "value": "14780",
+                  "type": "text"
+                },
+                {
+                  "key": "expense[spent_on]",
+                  "value": "2026-09-06",
+                  "type": "text"
+                },
+                {
+                  "key": "expense[household_id]",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "expense[category_id]",
+                  "value": "4",
+                  "type": "text",
+                  "description": "Salud (id 4 en los seeds)"
+                },
+                {
+                  "key": "expense[receipt]",
+                  "type": "file",
+                  "src": [],
+                  "description": "Archivo del comprobante"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar gasto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Gasto eliminado (204)\", function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/expenses/{{expense_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "expenses",
+                "{{expense_id}}"
+              ]
+            },
+            "description": "Elimina el gasto creado por **Crear gasto**."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar ingresos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/incomes?household_id=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incomes"
+              ],
+              "query": [
+                {
+                  "key": "household_id",
+                  "value": "1"
+                },
+                {
+                  "key": "scope",
+                  "value": "personal",
+                  "disabled": true
+                },
+                {
+                  "key": "month",
+                  "value": "2026-09",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Ingresos visibles para el usuario. Mismos filtros que gastos (`household_id`, `scope=personal`, `month`, `limit`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear ingreso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ingreso creado (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "if (body.id !== undefined) { pm.collectionVariables.set(\"income_id\", body.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/incomes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incomes"
+              ]
+            },
+            "description": "Ingreso del Hogar Martínez. Guarda `income_id`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"income\": {\n    \"description\": \"Venta de bicicleta usada\",\n    \"amount\": 35000,\n    \"received_on\": \"2026-09-20\",\n    \"household_id\": 1\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver ingreso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/incomes/{{income_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incomes",
+                "{{income_id}}"
+              ]
+            },
+            "description": "Detalle del ingreso creado."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar ingreso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/incomes/{{income_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incomes",
+                "{{income_id}}"
+              ]
+            },
+            "description": "Modifica el ingreso creado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"income\": {\n    \"amount\": 38000\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar ingreso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ingreso eliminado (204)\", function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/incomes/{{income_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incomes",
+                "{{income_id}}"
+              ]
+            },
+            "description": "Elimina el ingreso creado por **Crear ingreso**."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Planificación",
+      "description": "Presupuestos mensuales y vencimientos del hogar.",
+      "item": [
+        {
+          "name": "Listar presupuestos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/budgets?household_id=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "budgets"
+              ],
+              "query": [
+                {
+                  "key": "household_id",
+                  "value": "1",
+                  "description": "Obligatorio."
+                },
+                {
+                  "key": "month",
+                  "value": "2026-09",
+                  "description": "Mes YYYY-MM. Si no se envía, el mes actual.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Presupuestos del mes con `spent`, `remaining`, `usage_percentage` y `exceeded`. `household_id` es obligatorio (sin él, 400)."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear presupuesto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Presupuesto creado (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/budgets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "budgets"
+              ]
+            },
+            "description": "Presupuesto de Transporte (id 2 en los seeds) para diciembre. Sin `category_id` es el presupuesto general del mes. Hay uno solo por hogar, categoría y mes: al ejecutarlo dos veces responde 422.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"budget\": {\n    \"household_id\": 1,\n    \"category_id\": 2,\n    \"period\": \"2026-12\",\n    \"amount\": 90000\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar vencimientos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reminders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reminders"
+              ],
+              "query": [
+                {
+                  "key": "household_id",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "pending | paid | overdue | all",
+                  "disabled": true
+                },
+                {
+                  "key": "days",
+                  "value": "15",
+                  "description": "Pendientes de los próximos N días.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Vencimientos de los hogares del usuario. Por defecto, los pendientes."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear vencimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Vencimiento creado (201)\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "if (body.id !== undefined) { pm.collectionVariables.set(\"reminder_id\", body.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reminders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reminders"
+              ]
+            },
+            "description": "Vencimiento del Hogar Martínez. Guarda `reminder_id`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reminder\": {\n    \"household_id\": 1,\n    \"title\": \"Expensas\",\n    \"amount\": 85000,\n    \"due_on\": \"2026-10-10\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar vencimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reminders/{{reminder_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reminders",
+                "{{reminder_id}}"
+              ]
+            },
+            "description": "Modifica título, monto o fecha del vencimiento creado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reminder\": {\n    \"amount\": 87500,\n    \"due_on\": \"2026-10-12\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar vencimiento como pagado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde (200)\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reminders/{{reminder_id}}/pay",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reminders",
+                "{{reminder_id}}",
+                "pay"
+              ]
+            },
+            "description": "Marca como pagado el vencimiento creado. La respuesta trae `status: \"pagado\"`."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

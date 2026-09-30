@@ -174,6 +174,33 @@ Los errores tienen la forma `{ "errors": ["mensaje", ...] }` con status `400`, `
 | PATCH | `/api/v1/reminders/:id` | Modifica título, monto o fecha. |
 | PATCH | `/api/v1/reminders/:id/pay` | Marca el vencimiento como pagado. |
 
+### Colección de Postman
+
+En [`docs/CuentaHogar.postman_collection.json`](docs/CuentaHogar.postman_collection.json) hay una colección
+(formato v2.1) con un request por cada endpoint de la API, agrupados en cuatro carpetas: Autenticación,
+Hogares y categorías, Gastos e ingresos, y Planificación. Los bodies de ejemplo usan los datos de los seeds.
+
+Para usarla:
+
+1. Levantar el server con los seeds cargados (`bin/rails db:seed` y `bin/rails server`).
+2. En Postman: **Import** → elegir el archivo `docs/CuentaHogar.postman_collection.json`.
+3. Ejecutar **Autenticación → Login**: guarda el token en la variable de colección `token`. Todos los
+   demás requests lo usan solos (autorización Bearer heredada de la colección).
+4. Ejecutar el resto a mano, o la colección completa con **Run collection** (Runner), en orden.
+
+Detalles:
+
+- La URL del server está en la variable de colección `base_url` (`http://localhost:3000` por defecto).
+- Los requests de alta guardan el id creado (`expense_id`, `income_id`, `reminder_id`, `membership_id`)
+  y los de ver, editar y eliminar operan sobre ese registro, sin tocar los datos de los seeds.
+- **Registro** crea un usuario con un email único en cada ejecución; **Invitar miembro** agrega a ese
+  usuario al Hogar Martínez y **Quitar miembro** lo quita.
+- **Logout** hace un login aparte y revoca ese token, para no invalidar el de la colección.
+- **Crear gasto con comprobante** envía `multipart/form-data`: en `expense[receipt]` hay que elegir un
+  archivo (por ejemplo `test/fixtures/files/comprobante.png`).
+- **Crear categoría del hogar** y **Crear presupuesto** responden 422 si se ejecutan dos veces sobre la
+  misma base: el nombre de la categoría y el presupuesto por categoría y mes son únicos.
+
 ### Ejemplo rápido con curl
 
 ```bash
