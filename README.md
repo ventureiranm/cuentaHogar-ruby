@@ -9,29 +9,36 @@ El proyecto tiene dos partes separadas:
 - **Back-office** (`/admin`): panel web para administradores, con autenticación nativa de Rails 8.
 - **API JSON versionada** (`/api/v1`): la consume la aplicación del usuario final (TP N° 2). Autenticación por token.
 
-**Deploy:** _(completar con la URL si se publica)_
-
 ---
 
 ## Requisitos
 
-- Ruby 3.3 o superior
-- Rails 8
-- SQLite 3
+- Ruby 4.0 (versión exacta en `.ruby-version`: 4.0.7)
+- Bundler (viene con Ruby)
 - Git
+- No hace falta instalar SQLite aparte: la gem `sqlite3` lo trae incluido.
+- En **Windows**: [RubyInstaller](https://rubyinstaller.org) versión **Ruby+Devkit**, y al final de la
+  instalación ejecutar `ridk install` con las opciones 1 y 3 (MSYS2 y toolchain), necesarias para
+  compilar gems nativas.
+
+Rails 8.1 se instala con `bundle install`; no hace falta instalarlo aparte.
 
 ## Instalación
 
 ```bash
-git clone <URL-DEL-REPO> cuenta_hogar
-cd cuenta_hogar
+git clone https://github.com/ventureiranm/cuentaHogar-ruby.git
+cd cuentaHogar-ruby
 bundle install
-bin/rails db:prepare     # crea la base, corre las migraciones
-bin/rails db:seed        # carga datos de ejemplo (se puede correr más de una vez)
-bin/dev                  # o bin/rails server
+bin/rails db:prepare     # crea la base con el esquema (si la base es nueva, también carga los seeds)
+bin/rails db:seed        # carga o completa los datos de ejemplo (se puede correr más de una vez)
+bin/rails server         # o bin/dev
 ```
 
-Abrir <http://localhost:3000> (redirige al back-office).
+Abrir <http://localhost:3000> (redirige al login del back-office).
+
+> **Windows (PowerShell o cmd):** los scripts de `bin/` se ejecutan anteponiendo `ruby`, por ejemplo
+> `ruby bin/rails db:prepare`, `ruby bin/rails server` o `ruby bin/rubocop`. Desde Git Bash funcionan
+> tal cual.
 
 ## Credenciales
 
@@ -50,6 +57,9 @@ bin/rails test           # modelos, validaciones, lógica de negocio, mailers, b
 bin/rubocop              # estilo (rubocop-rails-omakase, sin reglas ignoradas)
 bin/brakeman --no-pager  # análisis de seguridad
 ```
+
+En Linux y macOS los tests corren en paralelo (un proceso por núcleo). En Windows no existe `fork()`,
+así que corren en un solo proceso (ver `test/test_helper.rb`).
 
 ## Emails (Action Mailer)
 
@@ -111,6 +121,8 @@ erDiagram
 
 La lógica del "Resumen del mes" (gastos, variación contra el mes anterior, presupuesto, saldo disponible,
 pendientes de revisión y gasto por categoría) está en el servicio `MonthlySummary` (`app/services`).
+Se calcula para un hogar (`MonthlySummary.new(household, mes)`) o para el ámbito Personal de un usuario
+(`MonthlySummary.personal(user, mes)`), con los mismos cálculos.
 El comportamiento común de gastos e ingresos está en el concern `HouseholdScoped`.
 
 ---
@@ -130,7 +142,11 @@ Todas las respuestas son JSON. Salvo `signup` y `login`, todos los endpoints req
 Authorization: Bearer <token>
 ```
 
-Los errores tienen la forma `{ "errors": ["mensaje", ...] }` con status `400`, `401`, `404` o `422`.
+La API no usa cookies ni la sesión del back-office: hereda de `ActionController::API` y solo acepta el token.
+El token se obtiene con `login` o `signup`, vence a los 30 días y en la base solo se guarda su digest SHA-256.
+
+Los errores tienen la forma `{ "errors": ["mensaje", ...] }` con status `400` (falta un parámetro),
+`401` (token inválido o ausente), `403` (sin permiso), `404` (no existe o no es del usuario) o `422` (validación).
 
 ### Autenticación
 
@@ -146,11 +162,15 @@ Los errores tienen la forma `{ "errors": ["mensaje", ...] }` con status `400`, `
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/v1/households` | Hogares del usuario con sus miembros. |
+| GET | `/api/v1/households` | Hogares del usuario con sus miembros (`id` del usuario, `membership_id`, nombre, iniciales y rol). |
 | POST | `/api/v1/households` | Crea un hogar (`{ "household": { "name", "currency" } }`); el creador queda como `owner`. |
 | GET | `/api/v1/households/:id` | Detalle de un hogar. |
-| GET | `/api/v1/households/:id/summary?month=YYYY-MM` | Resumen del mes (totales, variación, presupuesto, disponible, pendientes, gasto por categoría). |
+| GET | `/api/v1/households/:id/summary?month=YYYY-MM` | Resumen del mes del hogar (totales, variación, presupuesto, disponible, pendientes, gasto por categoría). Sin `month`, el mes actual. |
+| GET | `/api/v1/summary?month=YYYY-MM` | Resumen del mes del ámbito **Personal** (gastos e ingresos del usuario sin hogar). Mismos campos que el de un hogar, con `household_id: null`. No hay presupuestos personales, así que `budget_total` es 0 y `available` queda en negativo por lo gastado. |
+| POST | `/api/v1/households/:id/memberships` | Invita a un usuario registrado: `{ "email_address": "..." }`. Solo el `owner` del hogar (si no, `403`). Lo agrega como `member` y devuelve el miembro. Email no registrado: `404`; ya es miembro: `422`. |
+| DELETE | `/api/v1/households/:id/memberships/:membership_id` | Quita un miembro. Solo el `owner` (si no, `403`); no puede quitarse a sí mismo (`422`). |
 | GET | `/api/v1/categories?household_id=` | Categorías globales + las de los hogares del usuario. |
+| POST | `/api/v1/categories` | Crea una categoría propia de un hogar del usuario: `{ "category": { "household_id", "name", "color" } }`. Nunca crea categorías globales (esas se crean desde el back-office): sin `household_id` responde `400`; con un hogar ajeno, `404`. |
 
 ### Gastos e ingresos
 
