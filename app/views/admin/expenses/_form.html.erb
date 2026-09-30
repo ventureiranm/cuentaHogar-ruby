@@ -1,0 +1,54 @@
+<%= form_with model: [ :admin, expense ], class: "form panel pad" do |form| %>
+  <%= render "admin/shared/errors", record: expense %>
+
+  <div class="form-grid">
+    <div class="field field--wide">
+      <%= form.label :description %>
+      <%= form.text_field :description, required: true, placeholder: "Supermercado Disco" %>
+    </div>
+    <div class="field">
+      <%= form.label :amount %>
+      <%= form.number_field :amount, step: "0.01", min: "0.01", required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :spent_on %>
+      <%= form.date_field :spent_on, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :user_id, "Miembro" %>
+      <%= form.collection_select :user_id, @users, :id, :name, { prompt: "Elegí un usuario" }, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :household_id, "Hogar" %>
+      <%= form.collection_select :household_id, @households, :id, :name, include_blank: "Personal (sin hogar)" %>
+    </div>
+    <div class="field">
+      <%= form.label :category_id, "Categoría" %>
+      <%= form.collection_select :category_id, @categories, :id, :display_name,
+                                 include_blank: "Sin categoría (pendiente de revisión)" %>
+    </div>
+    <div class="field">
+      <%= form.label :source %>
+      <%= form.select :source, enum_options(Expense, :source) %>
+    </div>
+    <div class="field">
+      <%= form.label :receipt %>
+      <%= form.file_field :receipt, accept: Expense::RECEIPT_CONTENT_TYPES.join(",") %>
+      <% if expense.receipt.attached? && expense.receipt.blob.persisted? %>
+        <small class="muted">Actual: <%= expense.receipt.filename %>. Subí otro para reemplazarlo.</small>
+      <% end %>
+    </div>
+    <div class="field checkbox-field">
+      <label class="checkbox"><%= form.check_box :recurring %> Gasto recurrente</label>
+    </div>
+    <div class="field field--wide">
+      <%= form.label :notes %>
+      <%= form.text_area :notes, rows: 3 %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit "Guardar gasto", class: "btn btn--primary" %>
+    <%= link_to "Cancelar", admin_expenses_path, class: "btn" %>
+  </div>
+<% end %>

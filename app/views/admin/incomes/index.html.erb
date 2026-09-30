@@ -1,0 +1,30 @@
+<% content_for :title, "Ingresos" %>
+<% content_for :actions do %>
+  <%= link_to "+ Registrar ingreso", new_admin_income_path, class: "btn btn--primary" %>
+<% end %>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th>Fecha</th><th>Detalle</th><th>Ámbito</th><th>Miembro</th><th class="num">Monto</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @incomes.each do |income| %>
+        <tr>
+          <td class="mono muted"><%= l(income.received_on) %></td>
+          <td class="strong"><%= income.description %></td>
+          <td><%= income.scope_name %></td>
+          <td><%= income.user.name %></td>
+          <td class="num mono"><%= money(income.amount) %></td>
+          <td class="actions">
+            <%= link_to "Editar", edit_admin_income_path(income) %>
+            <%= button_to "Eliminar", admin_income_path(income), method: :delete,
+                          class: "link-button link-button--danger",
+                          form: { data: { turbo_confirm: "¿Eliminar este ingreso?" } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @incomes.empty? %><p class="muted pad">Todavía no hay ingresos registrados.</p><% end %>
+</div>

@@ -1,0 +1,40 @@
+<% content_for :title, "Vencimientos" %>
+<% content_for :actions do %>
+  <%= link_to "+ Nuevo vencimiento", new_admin_reminder_path, class: "btn btn--primary" %>
+<% end %>
+
+<div class="tabs">
+  <%= link_to "Pendientes", admin_reminders_path, class: class_names("tab", "is-active": params[:status] != "paid") %>
+  <%= link_to "Pagados", admin_reminders_path(status: "paid"), class: class_names("tab", "is-active": params[:status] == "paid") %>
+</div>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th>Vence</th><th>Concepto</th><th>Hogar</th><th>Estado</th><th class="num">Monto</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @reminders.each do |reminder| %>
+        <tr>
+          <td class="mono"><%= l(reminder.due_on) %></td>
+          <td class="strong"><%= reminder.title %>
+            <% if reminder.notified_at %><div class="sub">Avisado el <%= l(reminder.notified_at, format: :short) %></div><% end %>
+          </td>
+          <td><%= reminder.household.name %></td>
+          <td><%= reminder_badge(reminder) %></td>
+          <td class="num mono"><%= money(reminder.amount, currency: reminder.household.currency) %></td>
+          <td class="actions">
+            <% unless reminder.paid? %>
+              <%= button_to "Avisar por email", notify_admin_reminder_path(reminder), class: "link-button" %>
+            <% end %>
+            <%= link_to "Editar", edit_admin_reminder_path(reminder) %>
+            <%= button_to "Eliminar", admin_reminder_path(reminder), method: :delete,
+                          class: "link-button link-button--danger",
+                          form: { data: { turbo_confirm: "¿Eliminar este vencimiento?" } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @reminders.empty? %><p class="muted pad">No hay vencimientos para mostrar.</p><% end %>
+</div>

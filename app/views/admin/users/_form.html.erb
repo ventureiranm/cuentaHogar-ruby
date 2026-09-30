@@ -1,0 +1,33 @@
+<%= form_with model: [ :admin, user ], class: "form panel pad" do |form| %>
+  <%= render "admin/shared/errors", record: user %>
+
+  <div class="form-grid">
+    <div class="field">
+      <%= form.label :name %>
+      <%= form.text_field :name, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :email_address %>
+      <%= form.email_field :email_address, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :role %>
+      <%= form.select :role, enum_options(User, :role) %>
+    </div>
+    <div class="field"></div>
+    <div class="field">
+      <%= form.label :password %>
+      <%= form.password_field :password, autocomplete: "new-password",
+                                         placeholder: user.persisted? ? "Dejar vacío para no cambiarla" : "Mínimo 8 caracteres" %>
+    </div>
+    <div class="field">
+      <%= form.label :password_confirmation %>
+      <%= form.password_field :password_confirmation, autocomplete: "new-password" %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit "Guardar usuario", class: "btn btn--primary" %>
+    <%= link_to "Cancelar", admin_users_path, class: "btn" %>
+  </div>
+<% end %>

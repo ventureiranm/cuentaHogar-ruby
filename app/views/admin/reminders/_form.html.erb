@@ -1,0 +1,30 @@
+<%= form_with model: [ :admin, reminder ], class: "form panel pad" do |form| %>
+  <%= render "admin/shared/errors", record: reminder %>
+
+  <div class="form-grid">
+    <div class="field">
+      <%= form.label :household_id, "Hogar" %>
+      <%= form.collection_select :household_id, @households, :id, :name, { prompt: "Elegí un hogar" }, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :title %>
+      <%= form.text_field :title, required: true, placeholder: "Tarjeta Visa" %>
+    </div>
+    <div class="field">
+      <%= form.label :due_on %>
+      <%= form.date_field :due_on, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :amount %>
+      <%= form.number_field :amount, step: "0.01", min: "0.01" %>
+    </div>
+    <div class="field checkbox-field">
+      <label class="checkbox"><%= form.check_box :paid %> Ya está pagado</label>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit "Guardar vencimiento", class: "btn btn--primary" %>
+    <%= link_to "Cancelar", admin_reminders_path, class: "btn" %>
+  </div>
+<% end %>

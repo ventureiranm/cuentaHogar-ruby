@@ -1,0 +1,36 @@
+<% content_for :title, @expense.description %>
+<% content_for :eyebrow, "Gasto · #{@expense.scope_name}" %>
+<% content_for :actions do %>
+  <%= link_to "Editar", edit_admin_expense_path(@expense), class: "btn" %>
+  <%= button_to "Eliminar", admin_expense_path(@expense), method: :delete, class: "btn btn--danger",
+                form: { data: { turbo_confirm: "¿Eliminar este gasto?" } } %>
+<% end %>
+
+<section class="grid-2">
+  <div class="panel pad">
+    <dl class="details">
+      <dt>Monto</dt><dd class="mono big"><%= money(@expense.amount) %></dd>
+      <dt>Fecha</dt><dd><%= l(@expense.spent_on, format: :long) %></dd>
+      <dt>Categoría</dt><dd><%= @expense.category&.display_name || "Pendiente de revisión" %></dd>
+      <dt>Miembro</dt><dd><%= link_to @expense.user.name, admin_user_path(@expense.user) %></dd>
+      <dt>Ámbito</dt><dd><%= @expense.household ? link_to(@expense.household.name, admin_household_path(@expense.household)) : "Personal" %></dd>
+      <dt>Recurrente</dt><dd><%= @expense.recurring? ? "Sí" : "No" %></dd>
+      <dt>Origen</dt><dd><%= enum_label(Expense, :source, @expense.source) %></dd>
+      <dt>Notas</dt><dd><%= simple_format(@expense.notes.presence || "—") %></dd>
+    </dl>
+  </div>
+
+  <div class="panel pad">
+    <h2>Comprobante</h2>
+    <% if @expense.receipt.attached? %>
+      <% if @expense.receipt.image? %>
+        <%= image_tag @expense.receipt, class: "receipt-preview", alt: "Comprobante" %>
+      <% else %>
+        <p>📄 <%= @expense.receipt.filename %> (<%= number_to_human_size(@expense.receipt.byte_size) %>)</p>
+      <% end %>
+      <p><%= link_to "Descargar", rails_blob_path(@expense.receipt, disposition: "attachment"), class: "btn" %></p>
+    <% else %>
+      <p class="muted">Este gasto no tiene comprobante adjunto.</p>
+    <% end %>
+  </div>
+</section>

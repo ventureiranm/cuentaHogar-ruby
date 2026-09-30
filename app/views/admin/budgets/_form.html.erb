@@ -1,0 +1,28 @@
+<%= form_with model: [ :admin, budget ], class: "form panel pad" do |form| %>
+  <%= render "admin/shared/errors", record: budget %>
+
+  <div class="form-grid">
+    <div class="field">
+      <%= form.label :household_id, "Hogar" %>
+      <%= form.collection_select :household_id, @households, :id, :name, { prompt: "Elegí un hogar" }, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :category_id, "Categoría" %>
+      <%= form.collection_select :category_id, @categories, :id, :display_name,
+                                 include_blank: "General (todo el mes)" %>
+    </div>
+    <div class="field">
+      <%= form.label :period %>
+      <%= form.month_field :period, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :amount %>
+      <%= form.number_field :amount, step: "0.01", min: "0.01", required: true %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit "Guardar presupuesto", class: "btn btn--primary" %>
+    <%= link_to "Cancelar", admin_budgets_path, class: "btn" %>
+  </div>
+<% end %>

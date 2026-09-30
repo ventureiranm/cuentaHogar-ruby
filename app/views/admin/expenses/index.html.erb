@@ -1,0 +1,47 @@
+<% content_for :title, "Gastos" %>
+<% content_for :actions do %>
+  <%= link_to "+ Cargar gasto", new_admin_expense_path, class: "btn btn--primary" %>
+<% end %>
+
+<%= form_with url: admin_expenses_path, method: :get, class: "filters" do |form| %>
+  <%= form.select :household_id, @households.map { |household| [ household.name, household.id ] },
+                  include_blank: "Todos los hogares", selected: params[:household_id] %>
+  <label class="checkbox">
+    <%= form.check_box :pending, { checked: params[:pending] == "1" }, "1", nil %>
+    Solo pendientes de revisión
+  </label>
+  <%= form.submit "Filtrar", class: "btn", name: nil %>
+  <%= link_to "Limpiar", admin_expenses_path %>
+<% end %>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th>Fecha</th><th>Detalle</th><th>Ámbito</th><th>Miembro</th><th class="num">Monto</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @expenses.each do |expense| %>
+        <tr>
+          <td class="mono muted"><%= l(expense.spent_on) %></td>
+          <td>
+            <%= link_to expense.description, admin_expense_path(expense), class: "strong" %>
+            <div class="sub">
+              <% if expense.pending_review? %>
+                <span class="badge badge--warn">Sin categoría</span>
+              <% else %>
+                <%= expense.category.name %>
+              <% end %>
+              <%= "· Recurrente" if expense.recurring? %>
+              <%= "· Con comprobante" if expense.receipt.attached? %>
+            </div>
+          </td>
+          <td><%= expense.scope_name %></td>
+          <td><%= expense.user.name %></td>
+          <td class="num mono"><%= money(expense.amount) %></td>
+          <td class="actions"><%= link_to "Editar", edit_admin_expense_path(expense) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @expenses.empty? %><p class="muted pad">No hay gastos para mostrar.</p><% end %>
+</div>

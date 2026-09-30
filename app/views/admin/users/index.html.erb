@@ -1,0 +1,23 @@
+<% content_for :title, "Usuarios" %>
+<% content_for :actions do %>
+  <%= link_to "+ Nuevo usuario", new_admin_user_path, class: "btn btn--primary" %>
+<% end %>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Hogares</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @users.each do |user| %>
+        <tr>
+          <td><%= link_to user.name, admin_user_path(user), class: "strong" %></td>
+          <td class="muted"><%= user.email_address %></td>
+          <td><span class="badge <%= user.admin? ? "badge--ok" : "badge--muted" %>"><%= enum_label(User, :role, user.role) %></span></td>
+          <td><%= user.households.map(&:name).to_sentence.presence || "—" %></td>
+          <td class="actions"><%= link_to "Editar", edit_admin_user_path(user) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

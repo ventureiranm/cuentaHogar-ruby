@@ -1,0 +1,22 @@
+<% content_for :title, "Hogares" %>
+<% content_for :actions do %>
+  <%= link_to "+ Nuevo hogar", new_admin_household_path, class: "btn btn--primary" %>
+<% end %>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th>Hogar</th><th>Moneda</th><th>Miembros</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @households.each do |household| %>
+        <tr>
+          <td><%= link_to household.name, admin_household_path(household), class: "strong" %></td>
+          <td class="mono"><%= household.currency %></td>
+          <td><%= household.members.map { |member| member.name.split.first }.to_sentence.presence || "—" %></td>
+          <td class="actions"><%= link_to "Editar", edit_admin_household_path(household) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

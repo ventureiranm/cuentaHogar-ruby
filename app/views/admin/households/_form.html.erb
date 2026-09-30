@@ -1,0 +1,19 @@
+<%= form_with model: [ :admin, household ], class: "form panel pad" do |form| %>
+  <%= render "admin/shared/errors", record: household %>
+
+  <div class="form-grid">
+    <div class="field">
+      <%= form.label :name %>
+      <%= form.text_field :name, required: true, placeholder: "Hogar Martínez" %>
+    </div>
+    <div class="field">
+      <%= form.label :currency %>
+      <%= form.select :currency, Household::CURRENCIES %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit "Guardar hogar", class: "btn btn--primary" %>
+    <%= link_to "Cancelar", admin_households_path, class: "btn" %>
+  </div>
+<% end %>

@@ -1,11 +1,26 @@
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
+<div class="auth-card">
+  <div class="brand brand--dark">
+    <span class="brand__logo">CH</span>
+    <span class="brand__name">CuentaHogar</span>
+  </div>
+  <h1>Back-office</h1>
+  <p class="muted">Ingresá con una cuenta de administrador.</p>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
-<% end %>
-<br>
+  <% if alert.present? %><div class="flash flash--alert"><%= alert %></div><% end %>
+  <% if notice.present? %><div class="flash flash--notice"><%= notice %></div><% end %>
 
-<%= link_to "Forgot password?", new_password_path %>
+  <%= form_with url: session_path, class: "form" do |form| %>
+    <div class="field">
+      <%= form.label :email_address, "Email" %>
+      <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username",
+                                           value: params[:email_address] %>
+    </div>
+    <div class="field">
+      <%= form.label :password, "Contraseña" %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72 %>
+    </div>
+    <%= form.submit "Ingresar", class: "btn btn--primary btn--block" %>
+  <% end %>
+
+  <p class="auth-card__footer"><%= link_to "¿Olvidaste tu contraseña?", new_password_path %></p>
+</div>

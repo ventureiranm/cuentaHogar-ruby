@@ -1,0 +1,24 @@
+<%= form_with model: [ :admin, category ], class: "form panel pad" do |form| %>
+  <%= render "admin/shared/errors", record: category %>
+
+  <div class="form-grid">
+    <div class="field">
+      <%= form.label :name %>
+      <%= form.text_field :name, required: true, placeholder: "Alimentos" %>
+    </div>
+    <div class="field">
+      <%= form.label :color %>
+      <%= form.color_field :color %>
+    </div>
+    <div class="field">
+      <%= form.label :household_id, "Hogar" %>
+      <%= form.collection_select :household_id, @households, :id, :name,
+                                 include_blank: "Global (todos los hogares)" %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit "Guardar categoría", class: "btn btn--primary" %>
+    <%= link_to "Cancelar", admin_categories_path, class: "btn" %>
+  </div>
+<% end %>

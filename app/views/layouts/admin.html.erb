@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title><%= [ content_for(:title), "CuentaHogar · Back-office" ].compact.join(" · ") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#22332F">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="admin">
+    <aside class="sidebar">
+      <%= link_to admin_root_path, class: "brand" do %>
+        <span class="brand__logo">CH</span>
+        <span class="brand__name">CuentaHogar</span>
+      <% end %>
+      <div class="sidebar__label">Back-office</div>
+
+      <nav class="nav">
+        <%= admin_nav_link "Resumen", admin_root_path, :dashboard %>
+        <div class="nav__group">Movimientos</div>
+        <%= admin_nav_link "Gastos", admin_expenses_path, :expenses %>
+        <%= admin_nav_link "Ingresos", admin_incomes_path, :incomes %>
+        <%= admin_nav_link "Categorías", admin_categories_path, :categories %>
+        <div class="nav__group">Planificación</div>
+        <%= admin_nav_link "Presupuestos", admin_budgets_path, :budgets %>
+        <%= admin_nav_link "Vencimientos", admin_reminders_path, :reminders %>
+        <div class="nav__group">Administración</div>
+        <%= admin_nav_link "Hogares", admin_households_path, :households %>
+        <%= admin_nav_link "Usuarios", admin_users_path, :users %>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="avatar"><%= Current.user.initials %></div>
+        <div class="sidebar__user">
+          <strong><%= Current.user.name %></strong>
+          <span><%= Current.user.email_address %></span>
+        </div>
+        <%= button_to "Salir", session_path, method: :delete, class: "link-button" %>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow"><%= content_for(:eyebrow) || "Back-office" %></div>
+          <h1><%= content_for(:title) %></h1>
+        </div>
+        <div class="page-header__actions"><%= content_for(:actions) %></div>
+      </header>
+
+      <div class="content">
+        <% if notice.present? %><div class="flash flash--notice"><%= notice %></div><% end %>
+        <% if alert.present? %><div class="flash flash--alert"><%= alert %></div><% end %>
+        <%= yield %>
+      </div>
+    </main>
+  </body>
+</html>

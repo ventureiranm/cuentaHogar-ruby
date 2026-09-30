@@ -1,0 +1,27 @@
+<% content_for :title, "Categorías" %>
+<% content_for :actions do %>
+  <%= link_to "+ Nueva categoría", new_admin_category_path, class: "btn btn--primary" %>
+<% end %>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th>Categoría</th><th>Alcance</th><th class="num">Gastos</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @categories.each do |category| %>
+        <tr>
+          <td><%= color_swatch(category.color) %> <span class="strong"><%= category.name %></span></td>
+          <td><%= category.global? ? "Global (todos los hogares)" : category.household.name %></td>
+          <td class="num mono"><%= @expense_counts.fetch(category.id, 0) %></td>
+          <td class="actions">
+            <%= link_to "Editar", edit_admin_category_path(category) %>
+            <%= button_to "Eliminar", admin_category_path(category), method: :delete,
+                          class: "link-button link-button--danger",
+                          form: { data: { turbo_confirm: "¿Eliminar la categoría #{category.name}?" } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

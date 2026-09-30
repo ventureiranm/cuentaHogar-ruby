@@ -1,0 +1,93 @@
+<% content_for :title, @household.name %>
+<% content_for :eyebrow, "Hogar · #{pluralize(@memberships.size, "miembro", plural: "miembros")}" %>
+<% content_for :actions do %>
+  <%= link_to "Ver gastos", admin_expenses_path(household_id: @household.id), class: "btn" %>
+  <%= link_to "Editar", edit_admin_household_path(@household), class: "btn" %>
+  <%= button_to "Eliminar", admin_household_path(@household), method: :delete, class: "btn btn--danger",
+                form: { data: { turbo_confirm: "Se eliminarán el hogar y todos sus movimientos. ¿Continuar?" } } %>
+<% end %>
+
+<section class="cards">
+  <div class="card">
+    <div class="card__label">Gastos del mes</div>
+    <div class="card__value"><%= money(@summary.expenses_total, currency: @household.currency) %></div>
+    <div class="card__hint">
+      <% if @summary.variation_percentage %>
+        <%= number_to_percentage(@summary.variation_percentage.abs, precision: 1, separator: ",") %>
+        <%= @summary.variation_percentage.negative? ? "menos" : "más" %> que el mes anterior
+      <% else %>
+        Sin gastos el mes anterior
+      <% end %>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card__label">Saldo disponible</div>
+    <div class="card__value accent"><%= money(@summary.available, currency: @household.currency) %></div>
+    <div class="card__hint">Sobre un presupuesto de <%= money(@summary.budget_total, currency: @household.currency) %></div>
+    <%= usage_bar(@summary.budget_usage_percentage) %>
+  </div>
+  <div class="card">
+    <div class="card__label">Ingresos registrados</div>
+    <div class="card__value"><%= money(@summary.incomes_total, currency: @household.currency) %></div>
+    <div class="card__hint"><%= @summary.pending_review_count %> gastos pendientes de revisión</div>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="panel">
+    <div class="panel__header"><h2>Miembros</h2></div>
+    <table class="table">
+      <tbody>
+        <% @memberships.each do |membership| %>
+          <tr>
+            <td><%= link_to membership.user.name, admin_user_path(membership.user), class: "strong" %>
+              <div class="sub"><%= membership.user.email_address %></div></td>
+            <td><%= enum_label(Membership, :role, membership.role) %></td>
+            <td class="actions">
+              <%= button_to "Quitar", admin_household_membership_path(@household, membership), method: :delete,
+                            class: "link-button link-button--danger",
+                            form: { data: { turbo_confirm: "¿Quitar a #{membership.user.name} del hogar?" } } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @available_users.any? %>
+      <%= form_with model: [ :admin, @household, Membership.new ], class: "form inline-form pad" do |form| %>
+        <%= form.collection_select :user_id, @available_users, :id, :name, {}, required: true %>
+        <%= form.select :role, enum_options(Membership, :role) %>
+        <%= form.submit "Agregar miembro", class: "btn btn--primary" %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="panel">
+    <div class="panel__header">
+      <h2>Gasto por categoría</h2>
+    </div>
+    <table class="table">
+      <tbody>
+        <% @summary.by_category.each do |row| %>
+          <tr>
+            <td><%= row[:category] %></td>
+            <td class="num mono"><%= money(row[:total], currency: @household.currency) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="panel__header"><h2>Presupuestos del mes</h2><%= link_to "+ Nuevo", new_admin_budget_path %></div>
+    <table class="table">
+      <tbody>
+        <% @budgets.each do |budget| %>
+          <tr>
+            <td><%= budget.label %></td>
+            <td class="num mono"><%= money(budget.spent) %> / <%= money(budget.amount) %></td>
+            <td class="usage-cell"><%= usage_bar(budget.usage_percentage) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

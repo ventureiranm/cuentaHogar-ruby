@@ -1,0 +1,36 @@
+<% content_for :title, "Presupuestos" %>
+<% content_for :actions do %>
+  <%= link_to "+ Nuevo presupuesto", new_admin_budget_path, class: "btn btn--primary" %>
+<% end %>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th>Mes</th><th>Hogar</th><th>Categoría</th><th class="num">Gastado / Presupuesto</th><th>Uso</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @budgets.each do |budget| %>
+        <tr>
+          <td class="mono"><%= l(budget.period, format: "%b %Y").capitalize %></td>
+          <td><%= link_to budget.household.name, admin_household_path(budget.household) %></td>
+          <td class="strong"><%= budget.label %></td>
+          <td class="num mono">
+            <%= money(budget.spent, currency: budget.household.currency) %> /
+            <%= money(budget.amount, currency: budget.household.currency) %>
+          </td>
+          <td class="usage-cell">
+            <%= usage_bar(budget.usage_percentage) %>
+            <span class="sub"><%= number_to_percentage(budget.usage_percentage, precision: 1, separator: ",") %></span>
+          </td>
+          <td class="actions">
+            <%= link_to "Editar", edit_admin_budget_path(budget) %>
+            <%= button_to "Eliminar", admin_budget_path(budget), method: :delete,
+                          class: "link-button link-button--danger",
+                          form: { data: { turbo_confirm: "¿Eliminar este presupuesto?" } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @budgets.empty? %><p class="muted pad">Todavía no hay presupuestos.</p><% end %>
+</div>

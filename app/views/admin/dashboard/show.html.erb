@@ -1,0 +1,101 @@
+<% content_for :title, "Resumen del mes" %>
+<% content_for :eyebrow, l(@month, format: "%B %Y").capitalize %>
+<% content_for :actions do %>
+  <%= link_to "+ Cargar gasto", new_admin_expense_path, class: "btn btn--primary" %>
+<% end %>
+
+<section class="cards">
+  <div class="card">
+    <div class="card__label">Gastos del mes</div>
+    <div class="card__value"><%= money(@expenses_total) %></div>
+    <div class="card__hint">Todos los hogares y cuentas personales</div>
+  </div>
+  <div class="card">
+    <div class="card__label">Ingresos registrados</div>
+    <div class="card__value"><%= money(@incomes_total) %></div>
+    <div class="card__hint"><%= @users_count %> usuarios en el sistema</div>
+  </div>
+  <div class="card card--dark">
+    <div class="card__label">Pendiente de revisión</div>
+    <div class="card__value"><%= @pending_review_count %> gastos</div>
+    <div class="card__hint">Sin categoría asignada</div>
+    <%= link_to "Revisar ahora", admin_expenses_path(pending: 1), class: "btn btn--ghost" %>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="panel">
+    <div class="panel__header">
+      <h2>Últimos movimientos</h2>
+      <%= link_to "Ver todos", admin_expenses_path %>
+    </div>
+    <table class="table">
+      <thead>
+        <tr><th>Fecha</th><th>Detalle</th><th>Miembro</th><th class="num">Monto</th></tr>
+      </thead>
+      <tbody>
+        <% @latest_expenses.each do |expense| %>
+          <tr>
+            <td class="mono muted"><%= l(expense.spent_on, format: :short) %></td>
+            <td>
+              <%= link_to expense.description, admin_expense_path(expense), class: "strong" %>
+              <div class="sub">
+                <%= expense.category&.name || "Sin categoría" %> · <%= expense.scope_name %>
+                <%= "· Recurrente" if expense.recurring? %>
+              </div>
+            </td>
+            <td><%= expense.user.name.split.first %></td>
+            <td class="num mono"><%= money(expense.amount) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel__header">
+      <h2>Próximos vencimientos</h2>
+      <%= link_to "Gestionar", admin_reminders_path %>
+    </div>
+    <div class="list">
+      <% @upcoming_reminders.each do |reminder| %>
+        <div class="list__item <%= "list__item--warn" if reminder.days_until_due <= 0 %>">
+          <div>
+            <strong><%= reminder.title %></strong>
+            <div class="sub"><%= reminder.household.name %> · <%= l(reminder.due_on, format: :long) %></div>
+          </div>
+          <div class="mono"><%= money(reminder.amount) %></div>
+        </div>
+      <% end %>
+      <% if @upcoming_reminders.empty? %>
+        <p class="muted pad">No hay vencimientos en los próximos 14 días.</p>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel__header"><h2>Hogares este mes</h2></div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Hogar</th><th class="num">Gastos</th><th class="num">Presupuesto</th>
+        <th class="num">Disponible</th><th>Uso</th><th class="num">vs. mes anterior</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @summaries.each do |summary| %>
+        <tr>
+          <td><%= link_to summary.household.name, admin_household_path(summary.household), class: "strong" %></td>
+          <td class="num mono"><%= money(summary.expenses_total, currency: summary.household.currency) %></td>
+          <td class="num mono"><%= money(summary.budget_total, currency: summary.household.currency) %></td>
+          <td class="num mono"><%= money(summary.available, currency: summary.household.currency) %></td>
+          <td class="usage-cell"><%= usage_bar(summary.budget_usage_percentage) %></td>
+          <td class="num mono">
+            <%= summary.variation_percentage ? number_to_percentage(summary.variation_percentage, precision: 1, separator: ",") : "—" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
