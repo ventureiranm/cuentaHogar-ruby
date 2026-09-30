@@ -4,7 +4,8 @@ require "rails/test_help"
 
 module ActiveSupport
   class TestCase
-    parallelize(workers: :number_of_processors)
+    # En Windows no hay fork(): los tests corren en un solo proceso.
+    parallelize(workers: Process.respond_to?(:fork) ? :number_of_processors : 1)
     fixtures :all
 
     TEST_PASSWORD = "password123".freeze
