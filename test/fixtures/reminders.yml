@@ -1,0 +1,38 @@
+<% today = Date.current %>
+visa:
+  household: martinez
+  user: lucia
+  title: Tarjeta Visa
+  amount: 128400
+  due_on: <%= today %>
+
+internet:
+  household: martinez
+  user: lucia
+  title: Internet
+  amount: 29900
+  due_on: <%= today + 2 %>
+
+prepaga:
+  household: martinez
+  title: Prepaga
+  amount: 214700
+  due_on: <%= today + 9 %>
+
+vencido:
+  household: martinez
+  title: Seguro del auto
+  due_on: <%= today - 2 %>
+
+pagado:
+  household: martinez
+  title: Expensas
+  due_on: <%= today + 1 %>
+  paid_at: <%= Time.current.to_fs(:db) %>
+
+alquiler_gomez:
+  household: gomez
+  user: pedro
+  title: Alquiler
+  amount: 300000
+  due_on: <%= today + 1 %>

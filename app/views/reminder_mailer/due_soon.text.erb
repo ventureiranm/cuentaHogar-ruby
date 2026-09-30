@@ -1,0 +1,9 @@
+Hola, <%= @user.name %>. Te recordamos un vencimiento de <%= @household.name %>:
+
+Concepto: <%= @reminder.title %>
+Vence: <%= l(@reminder.due_on, format: :long) %>
+<% if @reminder.amount %>
+Monto: <%= money(@reminder.amount, currency: @household.currency) %>
+<% end %>
+
+— CuentaHogar

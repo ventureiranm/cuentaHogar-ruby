@@ -1,0 +1,14 @@
+<% month = Date.current.beginning_of_month %>
+sueldo_lucia:
+  user: lucia
+  household: martinez
+  description: Sueldo Lucía
+  amount: 600000
+  received_on: <%= month %>
+
+sueldo_diego:
+  user: diego
+  household: martinez
+  description: Sueldo Diego
+  amount: 440000
+  received_on: <%= month + 1 %>

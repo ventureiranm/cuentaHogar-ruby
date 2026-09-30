@@ -1,0 +1,14 @@
+lucia_martinez:
+  user: lucia
+  household: martinez
+  role: owner
+
+diego_martinez:
+  user: diego
+  household: martinez
+  role: member
+
+pedro_gomez:
+  user: pedro
+  household: gomez
+  role: owner

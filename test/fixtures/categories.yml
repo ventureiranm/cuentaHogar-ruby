@@ -1,0 +1,17 @@
+alimentos:
+  name: Alimentos
+  color: "#2F4F4A"
+
+transporte:
+  name: Transporte
+  color: "#4A6FA5"
+
+servicios_martinez:
+  name: Servicios
+  color: "#6D736C"
+  household: martinez
+
+mascotas_gomez:
+  name: Mascotas
+  color: "#C9A86A"
+  household: gomez

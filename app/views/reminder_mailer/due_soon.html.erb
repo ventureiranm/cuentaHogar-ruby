@@ -1,0 +1,10 @@
+<h1>Vencimiento próximo</h1>
+<p>Hola, <%= @user.name %>. Te recordamos un vencimiento de <strong><%= @household.name %></strong>:</p>
+<table cellpadding="6">
+  <tr><td>Concepto</td><td><strong><%= @reminder.title %></strong></td></tr>
+  <tr><td>Vence</td><td><%= l(@reminder.due_on, format: :long) %></td></tr>
+  <% if @reminder.amount %>
+    <tr><td>Monto</td><td><%= money(@reminder.amount, currency: @household.currency) %></td></tr>
+  <% end %>
+</table>
+<p>— CuentaHogar</p>

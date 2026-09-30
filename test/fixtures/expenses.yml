@@ -1,0 +1,50 @@
+<% month = Date.current.beginning_of_month %>
+# Hogar Martínez, mes actual: 48.320 + 32.000 + 41.230 = 121.550
+supermercado:
+  user: lucia
+  household: martinez
+  category: alimentos
+  description: Supermercado Disco
+  amount: 48320
+  spent_on: <%= month + 1 %>
+
+nafta:
+  user: diego
+  household: martinez
+  category: transporte
+  description: Nafta YPF
+  amount: 32000
+  spent_on: <%= month + 2 %>
+
+luz:
+  user: lucia
+  household: martinez
+  description: Consumo tarjeta sin categorizar
+  amount: 41230
+  spent_on: <%= month %>
+  source: imported
+  recurring: true
+
+# Hogar Martínez, mes anterior: 40.000
+supermercado_mes_anterior:
+  user: lucia
+  household: martinez
+  category: alimentos
+  description: Supermercado mes anterior
+  amount: 40000
+  spent_on: <%= month.prev_month + 5 %>
+
+cafe_personal:
+  user: lucia
+  category: alimentos
+  description: Café
+  amount: 3500
+  spent_on: <%= month %>
+
+veterinaria:
+  user: pedro
+  household: gomez
+  category: mascotas_gomez
+  description: Veterinaria
+  amount: 20000
+  spent_on: <%= month %>

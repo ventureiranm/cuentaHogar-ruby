@@ -1,0 +1,11 @@
+<% month = Date.current.beginning_of_month %>
+general_martinez:
+  household: martinez
+  period: <%= month %>
+  amount: 700000
+
+alimentos_martinez:
+  household: martinez
+  category: alimentos
+  period: <%= month %>
+  amount: 50000
