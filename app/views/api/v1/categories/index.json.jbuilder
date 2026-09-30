@@ -1,4 +1,1 @@
-json.array! @categories do |category|
-  json.extract! category, :id, :name, :color, :household_id
-  json.global category.global?
-end
+json.array! @categories, partial: "api/v1/categories/category", as: :category

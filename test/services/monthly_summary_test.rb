@@ -31,6 +31,32 @@ class MonthlySummaryTest < ActiveSupport::TestCase
     assert_in_delta 0.0, summary.budget_usage_percentage
   end
 
+  test "ámbito personal: solo los movimientos del usuario sin hogar" do
+    summary = MonthlySummary.personal(users(:lucia), Date.current)
+
+    assert summary.personal?
+    assert_equal 3_500, summary.expenses_total
+    assert_equal 0, summary.incomes_total
+    assert_equal [ { category: "Alimentos", total: 3_500.0 } ], summary.by_category
+  end
+
+  test "ámbito personal: sin presupuestos, el disponible queda en negativo por lo gastado" do
+    summary = MonthlySummary.personal(users(:lucia), Date.current)
+
+    assert_equal 0, summary.budget_total
+    assert_equal(-3_500, summary.available)
+    assert_in_delta 0.0, summary.budget_usage_percentage
+    assert_nil summary.to_h[:household_id]
+  end
+
+  test "el ámbito personal no incluye los gastos personales de otros usuarios" do
+    assert_equal 0, MonthlySummary.personal(users(:diego), Date.current).expenses_total
+  end
+
+  test "necesita un hogar o un usuario" do
+    assert_raises(ArgumentError) { MonthlySummary.new(nil) }
+  end
+
   test "to_h expone los datos para la API" do
     data = @summary.to_h
 

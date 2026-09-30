@@ -27,9 +27,11 @@ Rails.application.routes.draw do
       delete "logout", to: "sessions#destroy"
 
       resource :profile, only: %i[ show update ]
-      resources :categories, only: :index
+      resource :summary, only: :show
+      resources :categories, only: %i[ index create ]
       resources :households, only: %i[ index show create ] do
         get :summary, on: :member
+        resources :memberships, only: %i[ create destroy ]
       end
       resources :expenses, except: %i[ new edit ]
       resources :incomes, except: %i[ new edit ]
